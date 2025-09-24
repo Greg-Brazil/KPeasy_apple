@@ -24,6 +24,23 @@ jobs:
           pip install -r requirements.txt
           pip install "pyinstaller>=6.6,<7"
 
+      - name: Smoke test (imports e versões)
+        run: |
+          python - <<'PY'
+          import sys, platform
+          print("Python:", sys.version.split()[0], "| macOS:", platform.mac_ver()[0], "| Arch:", platform.machine())
+          import pandas as pd, openpyxl
+          from selenium import webdriver
+          from selenium.webdriver.common.by import By
+          from selenium.webdriver.support.ui import WebDriverWait
+          from selenium.webdriver.support import expected_conditions as EC
+          from selenium.webdriver.chrome.options import Options
+          from selenium.common.exceptions import TimeoutException
+          import tkinter
+          print("pandas", pd.__version__, "| openpyxl", openpyxl.__version__)
+          print("selenium import OK | tkinter import OK")
+          PY
+
       # Gera um app GUI sem console (bundle .app)
       - name: PyInstaller (build .app)
         run: |
