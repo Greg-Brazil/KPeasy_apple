@@ -1,0 +1,46 @@
+name: macOS build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.10 (universal2)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Upgrade pip & install deps
+        run: |
+          python -m pip install -U pip wheel setuptools
+          pip install -r requirements.txt
+          pip install "pyinstaller>=6.6,<7"
+
+      # Gera um app GUI sem console (bundle .app)
+      - name: PyInstaller (build .app)
+        run: |
+          pyinstaller --noconfirm --clean \
+            --name KPEasy \
+            --windowed \
+            KPeasy_app.py
+
+      # Compacta a .app num zip pra baixar como artefato
+      - name: Zip app
+        run: |
+          cd dist
+          ditto -c -k --sequesterRsrc --keepParent KPEasy.app KPEasy-mac.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KPEasy-mac
+          path: dist/KPEasy-mac.zip
+          if-no-files-found: error
